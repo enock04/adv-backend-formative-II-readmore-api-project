@@ -1,19 +1,14 @@
 const Author = require('../models/Author');
 const Book = require('../models/Book');
+const pickFields = require('../utils/pickFields');
 
 const EDITABLE_FIELDS = ['name', 'country', 'bio'];
 
-// Copy only the fields we allow, so clients can't slip in _id, createdAt, etc.
-function pickFields(body) {
-  const picked = {};
-  for (const field of EDITABLE_FIELDS) {
-    if (body[field] !== undefined) picked[field] = body[field];
-  }
-  return picked;
-}
+// For every handler below that takes an :id, the loadAuthor middleware has
+// already fetched the author into req.author (or answered 404).
 
 async function createAuthor(req, res) {
-  const author = await Author.create(pickFields(req.body));
+  const author = await Author.create(pickFields(req.body, EDITABLE_FIELDS));
   res.status(201).json(author);
 }
 
@@ -22,23 +17,14 @@ async function getAuthors(req, res) {
   res.json(authors);
 }
 
-async function getAuthor(req, res) {
-  const author = await Author.findById(req.params.id);
-  if (!author) {
-    return res.status(404).json({ message: 'No author found with that id' });
-  }
-  res.json(author);
+function getAuthor(req, res) {
+  res.json(req.author);
 }
 
 async function updateAuthor(req, res) {
-  const author = await Author.findByIdAndUpdate(req.params.id, pickFields(req.body), {
-    returnDocument: 'after',
-    runValidators: true,
-  });
-  if (!author) {
-    return res.status(404).json({ message: 'No author found with that id' });
-  }
-  res.json(author);
+  req.author.set(pickFields(req.body, EDITABLE_FIELDS));
+  await req.author.save(); // save() runs the schema validators
+  res.json(req.author);
 }
 
 /*
@@ -51,10 +37,7 @@ async function updateAuthor(req, res) {
  * clear the books by hand before the author can go.
  */
 async function deleteAuthor(req, res) {
-  const author = await Author.findById(req.params.id);
-  if (!author) {
-    return res.status(404).json({ message: 'No author found with that id' });
-  }
+  const { author } = req;
 
   const bookCount = await Book.countDocuments({ author: author._id });
   if (bookCount > 0) {
@@ -69,21 +52,12 @@ async function deleteAuthor(req, res) {
 }
 
 async function getAuthorBooks(req, res) {
-  const author = await Author.findById(req.params.id);
-  if (!author) {
-    return res.status(404).json({ message: 'No author found with that id' });
-  }
-
-  const books = await Book.find({ author: author._id }).sort({ publishedYear: 1 });
+  const books = await Book.find({ author: req.author._id }).sort({ publishedYear: 1 });
   res.json(books);
 }
 
 async function getAuthorStats(req, res) {
-  const author = await Author.findById(req.params.id);
-  if (!author) {
-    return res.status(404).json({ message: 'No author found with that id' });
-  }
-
+  const { author } = req;
   const books = await Book.find({ author: author._id }).sort({ price: 1 });
 
   // No books yet: 0 for the numbers, null for the titles (there is nothing to name).
