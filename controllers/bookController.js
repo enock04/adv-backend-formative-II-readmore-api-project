@@ -1,18 +1,11 @@
 const mongoose = require('mongoose');
 const Author = require('../models/Author');
 const Book = require('../models/Book');
+const pickFields = require('../utils/pickFields');
 
 const EDITABLE_FIELDS = ['title', 'genre', 'price', 'publishedYear', 'author'];
 const SORTABLE_FIELDS = ['price', 'title', 'publishedYear'];
 const EARLIEST_YEAR = 1450; // roughly when the printing press arrived
-
-function pickFields(body) {
-  const picked = {};
-  for (const field of EDITABLE_FIELDS) {
-    if (body[field] !== undefined) picked[field] = body[field];
-  }
-  return picked;
-}
 
 // Rule 3: things the schema can't express. Returns an error message, or null if fine.
 function checkBusinessRanges({ price, publishedYear }) {
@@ -69,7 +62,7 @@ async function checkBook(data, ignoreId) {
 }
 
 async function createBook(req, res) {
-  const data = pickFields(req.body);
+  const data = pickFields(req.body, EDITABLE_FIELDS);
 
   // Let the schema report missing required fields first (400)
   await new Book(data).validate();
@@ -151,46 +144,40 @@ async function getBooks(req, res) {
   const page = Number(req.query.page) || 1;
   const limit = paginated ? Number(req.query.limit) || 10 : total;
 
-  let query = Book.find(filter).sort(sortBy).populate('author');
+  // collation makes the title sort case-insensitive ("home" next to "Home", not after "Z")
+  let query = Book.find(filter).sort(sortBy).collation({ locale: 'en', strength: 2 }).populate('author');
   if (paginated) query = query.skip((page - 1) * limit).limit(limit);
 
   const results = await query;
   res.json({ page, limit, total, results });
 }
 
+// The :id routes run loadBook first, so req.book is already fetched (or 404 sent).
+
 async function getBook(req, res) {
-  const book = await Book.findById(req.params.id).populate('author');
-  if (!book) {
-    return res.status(404).json({ message: 'No book found with that id' });
-  }
-  res.json(book);
+  await req.book.populate('author');
+  res.json(req.book);
 }
 
 async function updateBook(req, res) {
-  const book = await Book.findById(req.params.id);
-  if (!book) {
-    return res.status(404).json({ message: 'No book found with that id' });
-  }
+  const { book } = req;
+  const changes = pickFields(req.body, EDITABLE_FIELDS);
 
   // Merge the changes over what's stored, then check the finished result as a whole.
-  const merged = { ...book.toObject(), ...pickFields(req.body) };
-  const problem = await checkBook(merged, book._id);
+  const problem = await checkBook({ ...book.toObject(), ...changes }, book._id);
   if (problem) {
     return res.status(problem.status).json({ message: problem.message });
   }
 
-  book.set(pickFields(req.body));
+  book.set(changes);
   await book.save();
   await book.populate('author');
   res.json(book);
 }
 
 async function deleteBook(req, res) {
-  const book = await Book.findByIdAndDelete(req.params.id);
-  if (!book) {
-    return res.status(404).json({ message: 'No book found with that id' });
-  }
-  res.json({ message: `Book "${book.title}" deleted` });
+  await req.book.deleteOne();
+  res.json({ message: `Book "${req.book.title}" deleted` });
 }
 
 module.exports = { createBook, getBooks, getBook, updateBook, deleteBook };
