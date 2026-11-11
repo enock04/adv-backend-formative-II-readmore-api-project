@@ -2,6 +2,8 @@
 // so clients can't slip in _id, createdAt, etc.
 function pickFields(body, allowed) {
   const picked = {};
+  // Express 5 leaves req.body undefined when no JSON body was sent
+  if (!body) return picked;
   for (const field of allowed) {
     if (body[field] !== undefined) picked[field] = body[field];
   }

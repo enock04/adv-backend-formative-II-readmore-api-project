@@ -64,6 +64,11 @@ async function checkBook(data, ignoreId) {
 async function createBook(req, res) {
   const data = pickFields(req.body, EDITABLE_FIELDS);
 
+  // A present-but-malformed author id (e.g. an empty string) would otherwise surface as a raw cast error
+  if (data.author !== undefined && !mongoose.isValidObjectId(data.author)) {
+    return res.status(400).json({ message: 'author must be the id of an existing author' });
+  }
+
   // Let the schema report missing required fields first (400)
   await new Book(data).validate();
 

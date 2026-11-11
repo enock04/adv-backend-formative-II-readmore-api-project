@@ -1,0 +1,632 @@
+{
+  "info": {
+    "name": "ReadMore API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "authorId",
+      "value": ""
+    },
+    {
+      "key": "author2Id",
+      "value": ""
+    },
+    {
+      "key": "emptyAuthorId",
+      "value": ""
+    },
+    {
+      "key": "bookId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Setup and authors",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/"
+          }
+        },
+        {
+          "name": "Create author (Achebe)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/authors",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chinua Achebe\",\n  \"country\": \"Nigeria\",\n  \"bio\": \"Novelist\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('authorId', pm.response.json()._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create author without name (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/authors",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"country\": \"Nigeria\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create second author (Aidoo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/authors",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ama Ata Aidoo\",\n  \"country\": \"Ghana\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('author2Id', pm.response.json()._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create author with no books",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/authors",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ngugi wa Thiong'o\",\n  \"country\": \"Kenya\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('emptyAuthorId', pm.response.json()._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get all authors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/authors"
+          }
+        },
+        {
+          "name": "Get one author",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/authors/{{authorId}}"
+          }
+        },
+        {
+          "name": "Update author",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/authors/{{authorId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Author of Things Fall Apart\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Missing author (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/authors/000000000000000000000000"
+          }
+        },
+        {
+          "name": "Malformed id (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/authors/abc"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Books and linking",
+      "item": [
+        {
+          "name": "Create book (Things Fall Apart)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Things Fall Apart\",\n  \"genre\": \"Fiction\",\n  \"price\": 20,\n  \"publishedYear\": 1958,\n  \"author\": \"{{authorId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bookId', pm.response.json()._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create book (Anthills of the Savannah)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Anthills of the Savannah\",\n  \"genre\": \"Fiction\",\n  \"price\": 23,\n  \"publishedYear\": 1987,\n  \"author\": \"{{authorId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create book (Arrow of God)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Arrow of God\",\n  \"genre\": \"Drama\",\n  \"price\": 12,\n  \"publishedYear\": 1964,\n  \"author\": \"{{authorId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create book (Home, other author)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Home\",\n  \"genre\": \"Drama\",\n  \"price\": 9.5,\n  \"publishedYear\": 2001,\n  \"author\": \"{{author2Id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get all books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books"
+          }
+        },
+        {
+          "name": "Get one book (author populated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books/{{bookId}}"
+          }
+        },
+        {
+          "name": "Books by author",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/authors/{{authorId}}/books"
+          }
+        },
+        {
+          "name": "Update book price",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books/{{bookId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 25.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Missing book (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books/000000000000000000000000"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Rules 1 to 3",
+      "item": [
+        {
+          "name": "Rule 1: orphan book (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Ghost\",\n  \"genre\": \"Fiction\",\n  \"price\": 10,\n  \"publishedYear\": 2000,\n  \"author\": \"000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rule 2: duplicate title, same author (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"THINGS FALL APART\",\n  \"genre\": \"Fiction\",\n  \"price\": 10,\n  \"publishedYear\": 2000,\n  \"author\": \"{{authorId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rule 2: same title, different author (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Things Fall Apart\",\n  \"genre\": \"Drama\",\n  \"price\": 10,\n  \"publishedYear\": 2000,\n  \"author\": \"{{author2Id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rule 3: price zero (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Free\",\n  \"genre\": \"Fiction\",\n  \"price\": 0,\n  \"publishedYear\": 2000,\n  \"author\": \"{{authorId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rule 3: future year (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Future\",\n  \"genre\": \"Fiction\",\n  \"price\": 10,\n  \"publishedYear\": 2999,\n  \"author\": \"{{authorId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rule 3: year before 1450 (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/books",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Too Old\",\n  \"genre\": \"Fiction\",\n  \"price\": 10,\n  \"publishedYear\": 1449,\n  \"author\": \"{{authorId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Rule 5: filter, sort, pagination",
+      "item": [
+        {
+          "name": "Only genre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books?genre=Fiction"
+          }
+        },
+        {
+          "name": "Only minPrice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books?minPrice=15"
+          }
+        },
+        {
+          "name": "Two filters combined",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books?genre=Fiction&minPrice=21&sort=price&order=desc"
+          }
+        },
+        {
+          "name": "Everything together",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books?genre=Fiction&minPrice=10&maxPrice=30&search=things&author={{authorId}}&sort=title&order=asc"
+          }
+        },
+        {
+          "name": "Bad sort (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books?sort=nope"
+          }
+        },
+        {
+          "name": "Bad price (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books?minPrice=abc"
+          }
+        },
+        {
+          "name": "Pagination",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/books?page=1&limit=2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Rule 6: stats",
+      "item": [
+        {
+          "name": "Stats, author with books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/authors/{{authorId}}/stats"
+          }
+        },
+        {
+          "name": "Stats, author with no books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/authors/{{emptyAuthorId}}/stats"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Rule 4: delete policy and cleanup",
+      "item": [
+        {
+          "name": "Delete author with books (409)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/authors/{{authorId}}"
+          }
+        },
+        {
+          "name": "Delete author with no books (200)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/authors/{{emptyAuthorId}}"
+          }
+        },
+        {
+          "name": "Delete a book (200)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/books/{{bookId}}"
+          }
+        },
+        {
+          "name": "Delete same book again (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/books/{{bookId}}"
+          }
+        }
+      ]
+    }
+  ]
+}
